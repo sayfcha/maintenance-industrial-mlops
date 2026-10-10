@@ -81,4 +81,42 @@ def validate_raw_data(df: pd.DataFrame) -> None:
 
     for column in label_columns:
         if not df[column].isin([0, 1]).all():
-            raise ValueError(f"{column} must contain only 0 or 1.")
+            raise ValueError(
+                f"{column} must contain only 0 or 1."
+            )
+
+    for column in numeric_features:
+        values = df[column]
+
+        if values.dtype.kind not in "iuf":
+            raise ValueError(
+                f"{column} must contain real numeric values."
+            )
+
+        if values.isin([float("inf"), float("-inf")]).any():
+            raise ValueError(
+                f"{column} must contain only finite values."
+            )
+        
+    temperature_columns = [
+        "Air temperature [K]",
+        "Process temperature [K]",
+    ]
+
+    for column in temperature_columns:
+        if (df[column] <= 0).any():
+            raise ValueError(
+                f"{column} must be strictly positive in kelvin."
+            )
+
+    nonnegative_columns = [
+        "Rotational speed [rpm]",
+        "Torque [Nm]",
+        "Tool wear [min]",
+    ]
+
+    for column in nonnegative_columns:
+        if (df[column] < 0).any():
+            raise ValueError(
+                f"{column} must be non-negative."
+            )

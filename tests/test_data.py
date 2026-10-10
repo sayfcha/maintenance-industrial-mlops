@@ -116,3 +116,64 @@ def test_validation_rejects_duplicate_columns(valid_raw_data):
 
     with pytest.raises(ValueError, match="Column names must be unique"):
         validate_raw_data(invalid_data)
+
+def test_validation_rejects_text_sensor_values(valid_raw_data):
+    valid_raw_data["Torque [Nm]"] = "unknown"
+
+    with pytest.raises(ValueError, match="real numeric values"):
+        validate_raw_data(valid_raw_data)
+
+
+@pytest.mark.parametrize("invalid_value", [
+    float("inf"),
+    float("-inf"),
+])
+def test_validation_rejects_infinite_sensor_values(
+    valid_raw_data,
+    invalid_value,
+):
+    valid_raw_data.loc[0, "Torque [Nm]"] = invalid_value
+
+    with pytest.raises(ValueError, match="finite values"):
+        validate_raw_data(valid_raw_data)
+
+@pytest.mark.parametrize("column", [
+    "Air temperature [K]",
+    "Process temperature [K]",
+])
+
+
+@pytest.mark.parametrize("value", [0, -1])
+def test_validation_rejects_nonpositive_temperatures(
+    valid_raw_data, column, value
+):
+    valid_raw_data.loc[0, column] = value
+
+    with pytest.raises(ValueError, match="strictly positive"):
+        validate_raw_data(valid_raw_data)
+
+
+@pytest.mark.parametrize("column", [
+    "Rotational speed [rpm]",
+    "Torque [Nm]",
+    "Tool wear [min]",
+])
+def test_validation_rejects_negative_measurements(valid_raw_data, column):
+    valid_raw_data.loc[0, column] = -1
+
+    with pytest.raises(ValueError, match="non-negative"):
+        validate_raw_data(valid_raw_data)
+
+
+@pytest.mark.parametrize("column", [
+    "Rotational speed [rpm]",
+    "Torque [Nm]",
+    "Tool wear [min]",
+])
+
+def test_validation_accepts_zero_nonnegative_measurements(
+    valid_raw_data, column
+):
+    valid_raw_data.loc[0, column] = 0
+
+    validate_raw_data(valid_raw_data)
