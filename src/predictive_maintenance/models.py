@@ -2,6 +2,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 
 from predictive_maintenance.preprocessing import build_preprocessor
 
@@ -33,6 +34,23 @@ def build_random_forest_pipeline() -> Pipeline:
             max_features="sqrt",
             random_state=42,
             n_jobs=-1,
+        )),
+    ])
+
+def build_xgboost_pipeline() -> Pipeline:
+    """Build an unfitted XGBoost pipeline with fixed initial settings."""
+    preprocessor = build_preprocessor().set_output(transform="default")
+
+    return Pipeline([
+        ("preprocessing", preprocessor),
+        ("model", XGBClassifier(
+            objective="binary:logistic",
+            n_estimators=300,
+            max_depth=3,
+            learning_rate=0.05,
+            tree_method="hist",
+            random_state=42,
+            n_jobs=4,
         )),
     ])
     
